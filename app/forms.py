@@ -234,7 +234,7 @@ class CustomerPickupRequestForm(FlaskForm):
     recurring_route_notes = TextAreaField("Route / Schedule Notes", validators=[Optional(), Length(max=2000)])
 
     customer_notes = TextAreaField("Additional Notes", validators=[Optional(), Length(max=2000)])
-    submit = SubmitField("Request Pickup")
+    submit = SubmitField("Submit Request")
 
 
 class DeliveryStatusForm(FlaskForm):

@@ -66,8 +66,10 @@ def main():
         failures.append("GET page missing pickup_time field")
     if 'name="delivery_address"' not in body:
         failures.append("GET page missing delivery_address field")
-    if "Request Pickup" not in body:
-        failures.append("GET page missing submit button")
+    if 'action="/request-pickup"' not in body:
+        failures.append("GET page missing request form link target")
+    if 'value="Submit Request"' not in body:
+        failures.append("GET page missing 'Submit Request' button")
 
     # ── 2. No internal nav / sidebar on the public page ──
     found_labels = [lbl for lbl in INTERNAL_LABELS if lbl in body]
