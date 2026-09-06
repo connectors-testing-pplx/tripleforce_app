@@ -569,6 +569,20 @@ def delivery_detail(delivery_id):
         flash(f"Status updated: {old_status} \u2192 {status_form.status.data}", "success")
         return redirect(url_for("driver_portal.delivery_detail", delivery_id=delivery.id))
 
+    # Default the "Update Status" dropdown to the next logical step in the
+    # driver delivery workflow (DRIVER_STATUS_FLOW order) instead of always
+    # resetting to the first choice. Terminal states keep the current status.
+    terminal = ("Completed", "Cancelled")
+    current = delivery.status or ""
+    if current in terminal:
+        next_status = current
+    elif current in DRIVER_STATUS_FLOW:
+        idx = DRIVER_STATUS_FLOW.index(current)
+        next_status = DRIVER_STATUS_FLOW[idx + 1] if idx + 1 < len(DRIVER_STATUS_FLOW) else current
+    else:
+        next_status = DRIVER_STATUS_FLOW[0]
+    status_form.status.data = next_status
+
     return render_template(
         "driver_portal/delivery_detail.html",
         delivery=delivery,
