@@ -119,6 +119,11 @@ def main():
     if "123 Main St" in body and "Request a Pickup</h1>" in body and "Pickup Request Received" not in body:
         failures.append("Form appears not to have been accepted (still showing blank form)")
 
+    # The redirect must land on the confirmation state, not re-render the
+    # submitted form, so refreshing cannot duplicate the request.
+    if 'name="requester_name"' in body:
+        failures.append("Confirmation page still contains the filled pickup form")
+
     # Verify the Delivery was created in the DB
     with app.app_context():
         deliveries = Delivery.query.order_by(Delivery.id.desc()).all()
@@ -202,6 +207,8 @@ def main():
     for value in ("New Pickup Requests", "TF-", "NYC Lab", "Front Desk"):
         if value not in dashboard_body:
             failures.append(f"Staff dashboard missing public request value: {value}")
+    if "No new website pickup requests" in dashboard_body:
+        failures.append("Dashboard new pickup request query returned zero after submission")
 
     r = client.get("/dispatch/?status=New+Request")
     dispatch_body = r.get_data(as_text=True)
@@ -211,6 +218,8 @@ def main():
     for value in ("Website Request", "NYC Lab", "Front Desk"):
         if value not in dispatch_body:
             failures.append(f"Dispatch board missing public request value: {value}")
+    if "123 Main St, New York, NY 10001" not in dispatch_body or "456 Health Ave, New York, NY 10002" not in dispatch_body:
+        failures.append("Dispatch board did not return the submitted pickup and delivery details")
 
     r = client.get("/request-pickup")
     body = r.get_data(as_text=True)

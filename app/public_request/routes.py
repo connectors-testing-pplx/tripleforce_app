@@ -13,6 +13,7 @@ from app.extensions import db
 from app.models import Delivery, DeliveryStatusHistory
 from app.forms import CustomerPickupRequestForm
 from app.utils import get_next_order_number, get_company_settings
+from sqlalchemy.exc import SQLAlchemyError
 
 public = Blueprint("public", __name__)
 
@@ -122,7 +123,20 @@ def request_pickup():
             updated_by=form.requester_name.data or "Website customer",
         )
         db.session.add(history)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            current_app.logger.exception("Public pickup request could not be saved")
+            flash(
+                "We could not save your pickup request. Please try again. "
+                "If the problem continues, contact us directly.",
+                "error",
+            )
+            return render_template(
+                "public/request_pickup.html", form=form, company_name=company_name,
+                submitted=False, order_number="",
+            ), 500
 
         # Best-effort internal notification email. Never blocks the request
         # and never rolls back the delivery on failure.

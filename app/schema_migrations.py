@@ -27,9 +27,12 @@ from sqlalchemy import inspect, text
 logger = logging.getLogger("tripleforce.schema")
 
 # (column name, SQL type) for every new public pickup-request column.
-# NOTE: "requested_delivery_deadline" reuses the existing ``delivery_deadline``
-# column on the deliveries table, so it is intentionally not listed here.
+# ``requested_delivery_deadline`` reuses the ``delivery_deadline`` column on
+# the deliveries table, which is included for older deployments below.
 _NEW_DELIVERY_COLUMNS = [
+    # Older deployments may predate the original delivery deadline field.
+    # Public pickup requests write it as the requested delivery deadline.
+    ("delivery_deadline", "DATETIME"),
     ("company_facility_name", "VARCHAR(255)"),
     ("pickup_contact_phone", "VARCHAR(50)"),
     ("delivery_contact_phone", "VARCHAR(50)"),
